@@ -1,0 +1,63 @@
+version: '2'
+
+services:
+
+  orderer.com:
+    container_name: orderer.com
+    image: hyperledger/fabric-orderer:${FABRIC_VERSION}
+    environment:
+      - ORDERER_GENERAL_LOGLEVEL=debug
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric
+    command: orderer
+    volumes:
+    - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+    - ../crypto-config/ordererOrganizations/orderer.com/users/Admin@orderer.com/msp:/var/hyperledger/orderer/msp
+    - ../production:/var/hyperledger/production
+    - orderer.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+  peer0.kshrd.com:
+    container_name: peer0.kshrd.com
+    extends: 
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - GODEBUG=netdns=go
+      - CORE_PEER_ID=peer0.kshrd.com
+      - CORE_PEER_ADDRESS=peer0.kshrd.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.kshrd.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.kshrd.com:7051
+      - CORE_PEER_LOCALMSPID=KshrdMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/kshrd.com/users/Admin@kshrd.com/msp:/etc/hyperledger/fabric/msp
+      - peer0.kshrd.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+
+  peer0.kosign.com:
+    container_name: peer0.kosign.com
+    extends: 
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - GODEBUG=netdns=go
+      - CORE_PEER_ID=peer0.kosign.com
+      - CORE_PEER_ADDRESS=peer0.kosign.com:7051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.kosign.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.kosign.com:7051
+      - CORE_PEER_LOCALMSPID=KosignMSP
+    volumes:
+      - /var/run/:/host/var/run/
+      - ../crypto-config/peerOrganizations/kosign.com/users/Admin@kosign.com/msp:/etc/hyperledger/fabric/msp
+      - peer0.kosign.com:/var/hyperledger/production
+    ports:
+      - 8051:7051
+
+  

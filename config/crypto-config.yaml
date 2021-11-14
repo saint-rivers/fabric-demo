@@ -1,6 +1,6 @@
 OrdererOrgs:
   - Name: OrdererOrg
-    Domain: orderer.kshrd.com
+    Domain: orderer.com
     EnableNodeOUs: true
     Specs:
       - Hostname: orderer
@@ -8,6 +8,14 @@ OrdererOrgs:
 PeerOrgs:
   - Name: KshrdOrg
     Domain: kshrd.com
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: devpeer
+    Users:
+      Count: 3
+
+  - Name: KosignOrg
+    Domain: kosign.com
     EnableNodeOUs: true
     Specs:
       - Hostname: devpeer

@@ -1,11 +1,161 @@
-Orderer:
-
-Organizations:
-
-Application:
-
-Channel:
-
 Capabilities:
+  Application: &ApplicationCapabilities
+    V2_0: true
+  Orderer: &OrdererCapabilities
+    V2_0: true
+  Channel: &ChannelCapabilities
+    V2_0: true
+
+Orderer: &OrdererDefaults
+  OrdererType: solo
+  Addresses: 
+    - orderer.com:7050
+  BatchTimeout: 5s
+  BatchSize:
+    MaxMessageCount: 10
+    AbsoluteMaxBytes: 99 MB
+    PreferredMaxBytes: 512 KB
+  MaxChannels: 0
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "ANY Admins"
+    BlockValidation:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+  Organizations:
+  Capabilities:
+    <<: *OrdererCapabilities
+
+Organizations: 
+  - &Orderer
+    Name: OrdererOrg
+    SkipAsForeign: false
+    ID: OrdererMSP
+    MSPDir: ../crypto-config/ordererOrganizations/orderer.com/users/Admin@orderer.com/msp
+    Policies: &OrdererPolicies
+      Readers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('OrdererMSP.member')"
+
+  - &Kshrd
+    Name: Kshrd
+    ID: KshrdMSP
+    MSPDir: ../crypto-config/peerOrganizations/kshrd.com/users/Admin@kshrd.com/msp
+    Policies: &KshrdPolicies
+      Readers:
+        Type: Signature
+        Rule: "OR('KshrdMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('KshrdMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('KshrdMSP.member')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('KshrdMSP.member')"
+
+    AnchorPeers: 
+      - Host: peer0.kshrd.com
+        Port: 7051
+
+  - &Kosign
+    Name: Kosign
+    ID: KosignMSP
+    MSPDir: ../crypto-config/peerOrganizations/kosign.com/users/Admin@kosign.com/msp
+    Policies: &KosignPolicies
+      Readers:
+        Type: Signature
+        Rule: "OR('KosignMSP.member')"
+      Writers:
+        Type: Signature
+        Rule: "OR('KosignMSP.member')"
+      Admins:
+        Type: Signature
+        Rule: "OR('KosignMSP.member')"
+      Endorsement:
+        Type: Signature
+        Rule: "OR('KosignMSP.member')"
+
+    AnchorPeers: 
+      - Host: peer0.kosign.com
+        Port: 8051
+
+Application: &ApplicationDefaults
+  Policies: &ApplicationDefaultPolicies
+    LifecycleEndorsement:
+      Type: ImplicitMeta
+      Rule: "ANY Endorsement"
+    Endorsement:
+      Type: ImplicitMeta
+      Rule: "MAJORITY Endorsement"
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "ANY Admins"
+  Capabilities:
+    <<: *ApplicationCapabilities
+  Organizations: 
+
+Channel: &ChannelDefaults
+  Policies:
+    Readers:
+      Type: ImplicitMeta
+      Rule: "ANY Readers"
+    Writers:
+      Type: ImplicitMeta
+      Rule: "ANY Writers"
+    Admins:
+      Type: ImplicitMeta
+      Rule: "ANY Admins"
+  Capabilities:
+    <<: *ChannelCapabilities
 
 Profiles:
+  TwoOrgOrdererGenesis: 
+    Capabilities:
+      <<: *ChannelCapabilities
+    <<: *ChannelDefaults
+    Orderer:
+      <<: *OrdererDefaults
+      Organizations:
+        - *Orderer
+      Capabilities: 
+        <<: *OrdererCapabilities
+    Consortiums:
+      SampleConsortium:
+        Organizations:
+          - *Kshrd
+          - *Kosign
+
+  TwoOrgChannel:
+    <<: *ChannelDefaults
+    Consortium: SampleConsortium
+    Application: 
+      <<: *ApplicationDefaults
+      Organizations:
+        - *Kshrd
+        - *Kosign
+      Capabilities:
+        <<: *ApplicationCapabilities
